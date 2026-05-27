@@ -1,16 +1,25 @@
 package com.condor.repository;
 
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DeviceRepository {
-    @Query(value = "SELECT public.validate_device(:plantId, :roleDeviceId, :hostname, :osName)", nativeQuery = true)
-    Boolean validateDevice(
-        @Param("plantId") Short plantId,
-        @Param("roleDeviceId") Short roleDeviceId,
-        @Param("hostname") String deviceHostname,
-        @Param("osName") String deviceOsName
-    );
+public class DeviceRepository {
+
+  private final JdbcTemplate jdbcTemplate;
+
+  public DeviceRepository(JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  /**
+   * Calls the DB function public.validate_device and returns the boolean result.
+   */
+  public Boolean validateDevice(Short plantId, Short roleDeviceId, String hostname, String osName) {
+    Object result = jdbcTemplate.queryForObject("SELECT public.validate_device(?, ?, ?, ?)",Boolean.class,plantId, roleDeviceId, hostname, osName);
+    if (result == null) return Boolean.FALSE;
+    if (result instanceof Boolean) return (Boolean) result;
+    if (result instanceof Number) return ((Number) result).intValue() != 0;
+    return Boolean.FALSE;
+  }
 }

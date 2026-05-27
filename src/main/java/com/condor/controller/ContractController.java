@@ -38,7 +38,6 @@ public class ContractController {
       return ResponseEntity.ok(response);
   }
 
-
   @GetMapping("/active-by-plant")
   public ResponseEntity<ApiResponse<List<ActiveContractByPlantDto>>> listActiveByPlant(
           @RequestParam(name = "plantId", required = true) Long plantId) {
@@ -70,7 +69,6 @@ public class ContractController {
       ApiResponse<List<ActiveDocumentsByContractDto>> response = new ApiResponse<>( true, "ACTIVE_DOCUMENTS_RETRIEVED_SUCCSSFULLY", "ACTIVE_DOCUMENTS_RETRIEVED_SUCCSSFULLY", result );
       return ResponseEntity.ok(response);
   }
-
 
   @Operation(
         summary = "Get document header",
@@ -123,6 +121,4 @@ public class ContractController {
               new ApiResponse<>( true, "DOCUMENT_RFID_DETAILS_RETRIEVED_SUCCESSFULLY", "DOCUMENT_RFID_DETAILS_RETRIEVED_SUCCESSFULLY", details );
       return ResponseEntity.ok(response);
   }
-
-
 }
