@@ -2,8 +2,8 @@ package com.condor.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "documents")
@@ -17,4 +17,6 @@ public class Document {
   private Long contractId;
   private Long plantId;
   private Instant documentDateCreated;
+  private LocalDate documentDateIncome;
+  private Short documentStatusId;
 }

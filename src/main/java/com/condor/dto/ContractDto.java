@@ -6,19 +6,19 @@ import lombok.Data;
 @Data
 @Schema(description = "Contract basic information")
 public class ContractDto {
-  @Schema(
+    @Schema(
         description = "Unique contract identifier",
         example = "1"
-  )
-  private Long contractId;
-  @Schema(
+    )
+    private Long contractId;
+    @Schema(
         description = "Name contract",
         example = "Contract laundry"
-  )
-  private String contractName;
-  @Schema(
+    )
+    private String contractName;
+    @Schema(
         description = "Unique customer identifier",
         example = "10"
-  )
-  private Long customerId;
+    )
+    private Long customerId;
 }

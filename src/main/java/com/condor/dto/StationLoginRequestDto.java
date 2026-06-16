@@ -4,14 +4,24 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Station or device validation request")
 public class StationLoginRequestDto {
-
-    @Schema(description = "Plant identifier", example = "1")
+    @Schema(description = "Plant identifier",
+        example = "1"
+    )
     private Short plantId;
-    @Schema(description = "Station or device rol identifier", example = "2")
+    @Schema(
+        description = "Station or device rol identifier",
+        example = "2"
+    )
     private Short roleDeviceId;
-    @Schema(description = "Station or device hostname", example = "COMPUTER-STATION")
+    @Schema(
+        description = "Station or device hostname",
+        example = "COMPUTER-STATION"
+    )
     private String hostname;
-    @Schema(description = "Station or device operative system", example = "LINUX FEDORA")
+    @Schema(
+        description = "Station or device operative system",
+        example = "LINUX FEDORA"
+    )
     private String osName;
 
     public Short getPlantId() {

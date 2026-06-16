@@ -5,19 +5,33 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Station login response")
 public class StationLoginResponseDto {
 
-    @Schema(description = "JWT access token")
+    @Schema(
+        description = "JWT access token"
+    )
     private String token;
 
-    @Schema(description = "Token expiration time in seconds", example = "900")
+    @Schema(
+        description = "Token expiration time in seconds",
+        example = "900"
+    )
     private Long expiresIn;
 
-    @Schema(description = "Plant identifier", example = "1")
+    @Schema(
+        description = "Plant identifier",
+        example = "1"
+    )
     private Short plantId;
 
-    @Schema(description = "Device role identifier", example = "2")
+    @Schema(
+        description = "Device role identifier",
+        example = "2"
+    )
     private Short roleDeviceId;
 
-    @Schema(description = "Device hostname", example = "PC-LAVADO-01")
+    @Schema(
+        description = "Device hostname",
+        example = "PC-LAVADO-01"
+    )
     private String hostname;
 
     public String getToken() {
