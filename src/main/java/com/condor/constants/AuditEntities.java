@@ -9,4 +9,6 @@ public final class AuditEntities {
     public static final String DOCUMENT = "DOCUMENT";
 
     public static final String CONTRACT = "CONTRACT";
+
+    public static final String DOCUMENT_DETAIL = "DOCUMENT_DETAIL";
 }

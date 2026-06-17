@@ -18,8 +18,8 @@ public class AuditService {
             String description
     ) {
         auditRepository.saveAudit(
-                SecurityUtils.getDeviceId(),
-                eventType, entityName, entityId, description
+            SecurityUtils.getDeviceId(),
+            eventType, entityName, entityId, description
         );
     }
 }

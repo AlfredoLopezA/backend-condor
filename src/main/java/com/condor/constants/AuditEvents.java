@@ -13,4 +13,11 @@ public final class AuditEvents {
     public static final String ADD_WEIGHT = "ADD_WEIGHT";
 
     public static final String ADD_RFID = "ADD_RFID";
+
+    public static final String CREATE_DOCUMENT_DETAIL = "CREATE_DOCUMENT_DETAIL";
+
+    public static final String DELETE_DOCUMENT_DETAIL = "DELETE_DOCUMENT_DETAIL";
+
+    public static final String CLOSE_DIRTY_WEIGHT = "CLOSE_DIRTY_WEIGHT";
+
 }
