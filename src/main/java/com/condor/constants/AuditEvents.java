@@ -20,4 +20,8 @@ public final class AuditEvents {
 
     public static final String CLOSE_DIRTY_WEIGHT = "CLOSE_DIRTY_WEIGHT";
 
+    public static final String FINISH_DOCUMENT = "FINISH_DOCUMENT";
+
+    public static final String DELETE_DOCUMENT = "DELETE_DOCUMENT";
+
 }

@@ -30,7 +30,6 @@ public class SecurityConfig {
                             SessionCreationPolicy.STATELESS
                     )
             )
-
             .authorizeHttpRequests(auth -> auth
 
                     .requestMatchers(
@@ -41,7 +40,6 @@ public class SecurityConfig {
 
                     .anyRequest().authenticated()
             )
-
             .addFilterBefore(
                     jwtAuthenticationFilter,
                     UsernamePasswordAuthenticationFilter.class

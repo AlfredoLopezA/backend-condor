@@ -19,8 +19,15 @@ public class Document {
     private Long plantId;
     private Instant documentDateCreated;
     private LocalDate documentDateIncome;
+    private LocalDate documentDateExit;
     private Short documentStatusId;
     private BigDecimal documentDirtyWeight;
     private Integer documentCageDirty;
     private Integer documentBulkDirty;
+    private BigDecimal documentCleanWeight;
+    private Integer documentCageClean;
+    private Integer documentBulkClean;
+    private Integer documentEpcCount;
+    private Integer documentEpcOk;
+    private Integer documentEpcNr;
 }

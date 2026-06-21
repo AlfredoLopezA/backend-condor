@@ -24,7 +24,7 @@ public class DocumentDetailController {
             @RequestBody CreateDocumentDetailRequest request
     ) {
         return ResponseEntity.ok(
-                service.create(documentId, request)
+            service.create(documentId, request)
         );
     }
 
@@ -33,7 +33,7 @@ public class DocumentDetailController {
             @PathVariable Long documentId
     ) {
         return ResponseEntity.ok(
-                service.findByDocumentId(documentId)
+            service.findByDocumentId(documentId)
         );
     }
 

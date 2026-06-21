@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -31,33 +32,35 @@ public class DocumentDetailService {
     @Transactional
     public DocumentDetailDto create(Long documentId, CreateDocumentDetailRequest request) {
         Document document = documentRepository.findById(documentId).orElseThrow();
-        if (document.getDocumentStatusId() > 2) {
+        Short status = document.getDocumentStatusId();
+        if (status >= 5) {
             throw new RuntimeException("Document does not allow new details");
         }
-
         DocumentDetail detail = new DocumentDetail();
         detail.setDocumentId(documentId);
         detail.setTareId(request.getTareId());
-        detail.setMoveTypeId((short) 1);
+        if (status < 3) {
+            detail.setMoveTypeId((short) 1);
+        } else if (status == 3 || status == 4) {
+            detail.setMoveTypeId((short) 2);
+        } else {
+            throw new RuntimeException("Invalid document status");
+        }
         detail.setDocumentDetailWeight(request.getDocumentDetailWeight());
         detail.setDocumentDetailEpcCount(0);
         detail.setDocumentDetailEpcOk(0);
         detail.setDocumentDetailEpcNr(0);
         detail.setDocumentDetailTime(LocalDateTime.now());
         detail = repository.save(detail);
-
-        if (document.getDocumentStatusId() == 1) {
+        if (document.getDocumentStatusId() == 1 && detail.getMoveTypeId() == 1) {
             document.setDocumentStatusId((short) 2);
-
             documentRepository.save(document);
         }
-        // documentRepository.findById(documentId)
-        //         .ifPresent(document -> {
-        //             if (document.getDocumentStatusId() == 1) {
-        //                 document.setDocumentStatusId((short) 2);
-        //                 documentRepository.save(document);
-        //             }
-        //         });
+
+        if (document.getDocumentStatusId() == 3 && detail.getMoveTypeId() == 2) {
+            document.setDocumentStatusId((short) 4);
+            documentRepository.save(document);
+        }
         auditService.register(
                 AuditEvents.CREATE_DOCUMENT_DETAIL,
                 AuditEntities.DOCUMENT_DETAIL,
@@ -100,10 +103,30 @@ public class DocumentDetailService {
     public void delete(Long documentDetailId) {
         DocumentDetail detail = repository.findById(documentDetailId).orElseThrow();
         Document document = documentRepository.findById(detail.getDocumentId()).orElseThrow();
-        if (document.getDocumentStatusId() > 2) {
-            throw new RuntimeException("Document is closed");
+        Short status = document.getDocumentStatusId();
+        if (status != 2 && status != 4) {
+            throw new RuntimeException("Document does not allow detail deletion");
         }
+
         repository.delete(detail);
+        if (status == 2) {
+            long remainingDirtyDetails = repository.findByDocumentId(document.getDocumentId())
+                            .stream().filter(d -> d.getMoveTypeId() == 1).count();
+            if (remainingDirtyDetails == 0) {
+                document.setDocumentStatusId((short) 1);
+                documentRepository.save(document);
+            }
+        }
+        if (status == 4) {
+            long remainingCleanDetails = repository.findByDocumentId(document.getDocumentId())
+                            .stream().filter(d -> d.getMoveTypeId() == 2)
+                            .count();
+            if (remainingCleanDetails == 0) {
+                document.setDocumentStatusId((short) 3);
+                documentRepository.save(document);
+            }
+        }
+
         auditService.register(
                 AuditEvents.DELETE_DOCUMENT_DETAIL,
                 AuditEntities.DOCUMENT_DETAIL,
@@ -125,42 +148,69 @@ public class DocumentDetailService {
             throw new RuntimeException("Document has no details");
         }
 
-        BigDecimal totalDirtyWeight =
-                details.stream().map(DocumentDetail::getDocumentDetailWeight).reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        int bulkCount =
-                (int) details.stream()
-                        .filter(d -> d.getTareId() == 1L)
-                        .count();
-
-        int cageCount =
-                (int) details.stream()
-                        .filter(d -> d.getTareId() > 1L)
-                        .count();
-
-        document.setDocumentDirtyWeight(
-                totalDirtyWeight
-        );
-
-        document.setDocumentBulkDirty(
-                bulkCount
-        );
-
-        document.setDocumentCageDirty(
-                cageCount
-        );
-
-        document.setDocumentStatusId(
-                (short) 3
-        );
-
+        BigDecimal totalDirtyWeight = details.stream().map(DocumentDetail::getDocumentDetailWeight).reduce(BigDecimal.ZERO, BigDecimal::add);
+        int bulkCount = (int) details.stream().filter(d -> d.getTareId() == 1L).count();
+        int cageCount = (int) details.stream().filter(d -> d.getTareId() > 1L).count();
+        document.setDocumentDirtyWeight(totalDirtyWeight);
+        document.setDocumentBulkDirty(bulkCount);
+        document.setDocumentCageDirty(cageCount);
+        document.setDocumentDateIncome(LocalDate.now());
+        document.setDocumentStatusId((short) 3);
         documentRepository.save(document);
-
         auditService.register(
                 AuditEvents.CLOSE_DIRTY_WEIGHT,
                 AuditEntities.DOCUMENT,
                 documentId,
                 "Dirty weight closed"
+        );
+    }
+
+    @Transactional
+    public void finishDocument(Long documentId) {
+        Document document = documentRepository.findById(documentId).orElseThrow();
+        // if (document.getDocumentStatusId() != 4) {
+        //     throw new RuntimeException("Document is not in clean process");
+        // }
+        Short status = document.getDocumentStatusId();
+        if (status != 3 && status != 4) {
+            throw new RuntimeException("Document cannot be finalized");
+        }
+
+        List<DocumentDetail> details = repository.findByDocumentId(documentId);
+        BigDecimal cleanWeight = BigDecimal.ZERO;
+        int cageClean = 0;
+        int bulkClean = 0;
+        int epcCount = 0;
+        int epcOk = 0;
+        int epcNr = 0;
+        for (DocumentDetail detail : details) {
+            if (detail.getMoveTypeId() != 2) {
+                continue;
+            }
+            cleanWeight = cleanWeight.add(detail.getDocumentDetailWeight());
+            if (detail.getTareId() == 1) {
+                bulkClean++;
+            } else {
+                cageClean++;
+            }
+            epcCount += detail.getDocumentDetailEpcCount();
+            epcOk += detail.getDocumentDetailEpcOk();
+            epcNr += detail.getDocumentDetailEpcNr();
+        }
+        document.setDocumentCleanWeight(cleanWeight);
+        document.setDocumentCageClean(cageClean);
+        document.setDocumentBulkClean(bulkClean);
+        document.setDocumentEpcCount(epcCount);
+        document.setDocumentEpcOk(epcOk);
+        document.setDocumentEpcNr(epcNr);
+        document.setDocumentDateExit(LocalDate.now());
+        document.setDocumentStatusId((short) 5);
+        documentRepository.save(document);
+        auditService.register(
+                AuditEvents.FINISH_DOCUMENT,
+                AuditEntities.DOCUMENT,
+                documentId,
+                "Document finished"
         );
     }
 }

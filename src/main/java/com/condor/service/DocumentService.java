@@ -36,7 +36,7 @@ public class DocumentService {
                 .format(now);
         d.setDocumentNumber(documentNumber);
         d.setDocumentDateCreated(Instant.now());
-        d.setDocumentDateIncome(req.getDocumentDateIncome());
+        //d.setDocumentDateIncome(req.getDocumentDateIncome());
         d.setDocumentStatusId((short) 1);
         d = repo.save(d);
         auditService.register(AuditEvents.CREATE_DOCUMENT, AuditEntities.DOCUMENT, d.getDocumentId(), "Document created");
@@ -46,7 +46,7 @@ public class DocumentService {
         out.setContractId(d.getContractId());
         out.setPlantId(d.getPlantId());
         out.setDocumentDateCreated(d.getDocumentDateCreated());
-        out.setDocumentDateIncome(d.getDocumentDateIncome());
+        //out.setDocumentDateIncome(d.getDocumentDateIncome());
         return out;
     }
 
@@ -61,5 +61,22 @@ public class DocumentService {
         out.setDocumentDateIncome(d.getDocumentDateIncome());
         return out;
         });
+    }
+
+    @Transactional
+    public void delete(Long documentId) {
+        Document document = repo.findById(documentId).orElseThrow();
+        Short status = document.getDocumentStatusId();
+        if (status < 1 || status > 3) {
+            throw new RuntimeException("Document cannot be deleted");
+        }
+        document.setDocumentStatusId((short) 6);
+        repo.save(document);
+        auditService.register(
+                AuditEvents.DELETE_DOCUMENT,
+                AuditEntities.DOCUMENT,
+                documentId,
+                "Document deleted"
+        );
     }
 }

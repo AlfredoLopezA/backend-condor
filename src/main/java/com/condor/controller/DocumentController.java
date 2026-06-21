@@ -2,6 +2,7 @@ package com.condor.controller;
 
 import com.condor.dto.CreateDocumentRequest;
 import com.condor.dto.DocumentDto;
+import com.condor.service.DocumentDetailService;
 import com.condor.service.DocumentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/documents")
 public class DocumentController {
   private final DocumentService documentService;
-  public DocumentController(DocumentService ds){ this.documentService = ds; }
+  private final DocumentDetailService documentDetailService;
+  public DocumentController(DocumentService documentService, DocumentDetailService documentDetailService) {
+      this.documentService = documentService;
+      this.documentDetailService = documentDetailService;
+  }
 
   @PostMapping
   public ResponseEntity<DocumentDto> create(@RequestBody CreateDocumentRequest req) {
@@ -22,4 +27,17 @@ public class DocumentController {
   public ResponseEntity<DocumentDto> get(@PathVariable Long id) {
     return ResponseEntity.of(documentService.findById(id));
   }
+
+  @PostMapping("/{documentId}/finish")
+  public ResponseEntity<Void> finish(@PathVariable Long documentId) {
+      documentDetailService.finishDocument(documentId);
+      return ResponseEntity.ok().build();
+  }
+
+  @DeleteMapping("/{documentId}")
+  public ResponseEntity<Void> delete(@PathVariable Long documentId) {
+      documentService.delete(documentId);
+      return ResponseEntity.noContent().build();
+  }
+
 }
