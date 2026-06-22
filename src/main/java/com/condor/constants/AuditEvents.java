@@ -24,4 +24,6 @@ public final class AuditEvents {
 
     public static final String DELETE_DOCUMENT = "DELETE_DOCUMENT";
 
+    public static final String CHANGE_DOCUMENT_CONTRACT = "CHANGE_DOCUMENT_CONTRACT";
+
 }

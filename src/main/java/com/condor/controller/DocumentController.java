@@ -1,5 +1,6 @@
 package com.condor.controller;
 
+import com.condor.dto.ChangeDocumentContractRequest;
 import com.condor.dto.CreateDocumentRequest;
 import com.condor.dto.DocumentDto;
 import com.condor.service.DocumentDetailService;
@@ -37,6 +38,12 @@ public class DocumentController {
   @DeleteMapping("/{documentId}")
   public ResponseEntity<Void> delete(@PathVariable Long documentId) {
       documentService.delete(documentId);
+      return ResponseEntity.noContent().build();
+  }
+
+  @PutMapping("/{documentId}/contract")
+  public ResponseEntity<Void> changeContract( @PathVariable Long documentId, @RequestBody ChangeDocumentContractRequest request) {
+      documentService.changeContract(documentId, request.getContractId());
       return ResponseEntity.noContent().build();
   }
 
