@@ -30,4 +30,5 @@ public class Document {
     private Integer documentEpcCount;
     private Integer documentEpcOk;
     private Integer documentEpcNr;
+    private Short documentTypeId;
 }

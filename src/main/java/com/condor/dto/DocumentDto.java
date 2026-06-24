@@ -36,4 +36,16 @@ public class DocumentDto {
     private LocalDate documentDateIncome;
 
     private Instant documentDateCreated;
+
+    @Schema(
+        description = "Unique document type identifier",
+        example = "3"
+    )
+    private Short documentTypeId;
+
+    @Schema(
+        description = "Document type description",
+        example = "Aumento de Stock"
+    )
+    private String documentTypeDescription;
 }

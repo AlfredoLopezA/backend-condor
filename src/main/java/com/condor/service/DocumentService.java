@@ -27,6 +27,9 @@ public class DocumentService {
     }
     @Transactional
     public DocumentDto create(CreateDocumentRequest req){
+        if (req.getDocumentTypeId() == null) {
+            throw new RuntimeException("Document type is required");
+        }
         Document d = new Document();
         d.setContractId(req.getContractId());
         d.setPlantId( Long.valueOf(SecurityUtils.getPlantId()));
@@ -35,8 +38,18 @@ public class DocumentService {
                 .withZone(ZoneId.systemDefault())
                 .format(now);
         d.setDocumentNumber(documentNumber);
+        // d.setDocumentDateCreated(Instant.now());
+        // d.setDocumentStatusId((short) 1);
+        // d.setDocumentTypeId(req.getDocumentTypeId());
+        // d = repo.save(d);
         d.setDocumentDateCreated(Instant.now());
-        d.setDocumentStatusId((short) 1);
+        d.setDocumentTypeId(req.getDocumentTypeId());
+        if (req.getDocumentTypeId().equals((short) 3)
+                || req.getDocumentTypeId().equals((short) 4)) {
+            d.setDocumentStatusId((short) 3);
+        } else {
+            d.setDocumentStatusId((short) 1);
+        }
         d = repo.save(d);
         auditService.register(AuditEvents.CREATE_DOCUMENT, AuditEntities.DOCUMENT, d.getDocumentId(), "Document created");
         DocumentDto out = new DocumentDto();
@@ -45,6 +58,7 @@ public class DocumentService {
         out.setContractId(d.getContractId());
         out.setPlantId(d.getPlantId());
         out.setDocumentDateCreated(d.getDocumentDateCreated());
+        out.setDocumentTypeId(d.getDocumentTypeId());
         return out;
     }
 
@@ -57,6 +71,7 @@ public class DocumentService {
         out.setPlantId(d.getPlantId());
         out.setDocumentDateCreated(d.getDocumentDateCreated());
         out.setDocumentDateIncome(d.getDocumentDateIncome());
+        out.setDocumentTypeId(d.getDocumentTypeId());
         return out;
         });
     }
