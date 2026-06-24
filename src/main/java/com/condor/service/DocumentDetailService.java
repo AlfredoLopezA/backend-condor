@@ -138,10 +138,12 @@ public class DocumentDetailService {
     @Transactional
     public void closeDirtyWeight(Long documentId) {
         Document document = documentRepository.findById(documentId).orElseThrow();
+        if (document.getDocumentTypeId().equals((short) 3)
+                || document.getDocumentTypeId().equals((short) 4)) {
+            throw new RuntimeException("Document type does not allow dirty weighing");
+        }
         if (document.getDocumentStatusId() != 2) {
-            throw new RuntimeException(
-                    "Document is not in dirty weighing process"
-            );
+            throw new RuntimeException("Document is not in dirty weighing process");
         }
         List<DocumentDetail> details = repository.findByDocumentId(documentId);
         if (details.isEmpty()) {
@@ -168,15 +170,16 @@ public class DocumentDetailService {
     @Transactional
     public void finishDocument(Long documentId) {
         Document document = documentRepository.findById(documentId).orElseThrow();
-        // if (document.getDocumentStatusId() != 4) {
-        //     throw new RuntimeException("Document is not in clean process");
-        // }
         Short status = document.getDocumentStatusId();
         if (status != 3 && status != 4) {
             throw new RuntimeException("Document cannot be finalized");
         }
 
         List<DocumentDetail> details = repository.findByDocumentId(documentId);
+        boolean hasCleanDetails = details.stream().anyMatch(d -> d.getMoveTypeId() == 2);
+        if (!hasCleanDetails) {
+            throw new RuntimeException("Document has no clean details");
+        }
         BigDecimal cleanWeight = BigDecimal.ZERO;
         int cageClean = 0;
         int bulkClean = 0;
