@@ -1,5 +1,5 @@
 package com.condor.constants;
-
+// Important definitios of events
 public final class AuditEvents {
 
     private AuditEvents() {}
