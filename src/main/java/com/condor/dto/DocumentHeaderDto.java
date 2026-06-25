@@ -48,6 +48,17 @@ public class DocumentHeaderDto {
         example = "Plant of Detroit"
     )
     private String plantName;
+
+    @Schema(
+        description = "Code of type document",
+        example = "1"
+    )
+    private Short documenttypeId;
+    @Schema(
+        description = "Description of type",
+        example = "Normal"
+    )
+    private String documenttypeDescription;
     @Schema(
         description = "Code status document",
         example = "1"

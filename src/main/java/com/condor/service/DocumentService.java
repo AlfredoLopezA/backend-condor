@@ -38,10 +38,6 @@ public class DocumentService {
                 .withZone(ZoneId.systemDefault())
                 .format(now);
         d.setDocumentNumber(documentNumber);
-        // d.setDocumentDateCreated(Instant.now());
-        // d.setDocumentStatusId((short) 1);
-        // d.setDocumentTypeId(req.getDocumentTypeId());
-        // d = repo.save(d);
         d.setDocumentDateCreated(Instant.now());
         d.setDocumentTypeId(req.getDocumentTypeId());
         if (req.getDocumentTypeId().equals((short) 3)
