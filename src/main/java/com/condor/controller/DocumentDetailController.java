@@ -1,6 +1,7 @@
 package com.condor.controller;
 
 import com.condor.dto.CreateDocumentDetailRequest;
+import com.condor.dto.CreateRfidReadRequest;
 import com.condor.dto.DocumentDetailDto;
 import com.condor.service.DocumentDetailService;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,15 @@ public class DocumentDetailController {
         return ResponseEntity.ok(
             service.create(documentId, request)
         );
+    }
+
+    @PostMapping("/{documentDetailId}/rfid")
+    public ResponseEntity<Void> registerRfid(
+            @PathVariable Long documentDetailId,
+            @RequestBody CreateRfidReadRequest request
+    ) {
+        service.registerRfidRead(documentDetailId, request);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{documentId}/details")

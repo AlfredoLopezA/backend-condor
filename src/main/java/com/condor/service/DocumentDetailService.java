@@ -2,10 +2,17 @@ package com.condor.service;
 
 import com.condor.domain.Document;
 import com.condor.domain.DocumentDetail;
+import com.condor.domain.ProductUnit;
+import com.condor.domain.ProductUnitTransaction;
+import com.condor.domain.EpcNrDocumentDetail;
 import com.condor.dto.CreateDocumentDetailRequest;
+import com.condor.dto.CreateRfidReadRequest;
 import com.condor.dto.DocumentDetailDto;
 import com.condor.repository.DocumentDetailRepository;
 import com.condor.repository.DocumentRepository;
+import com.condor.repository.EpcNrDocumentDetailRepository;
+import com.condor.repository.ProductUnitRepository;
+import com.condor.repository.ProductUnitTransactionRepository;
 import com.condor.constants.AuditEntities;
 import com.condor.constants.AuditEvents;
 import org.springframework.stereotype.Service;
@@ -15,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DocumentDetailService {
@@ -22,11 +30,19 @@ public class DocumentDetailService {
     private final DocumentDetailRepository repository;
     private final AuditService auditService;
     private final DocumentRepository documentRepository;
+    private final ProductUnitRepository productUnitRepository;
+    private final ProductUnitTransactionRepository productUnitTransactionRepository;
+    private final EpcNrDocumentDetailRepository epcNrDocumentDetailRepository;
 
-    public DocumentDetailService(DocumentDetailRepository repository, DocumentRepository documentRepository, AuditService auditService) {
+    public DocumentDetailService(DocumentDetailRepository repository, DocumentRepository documentRepository, 
+        ProductUnitRepository productUnitRepository, ProductUnitTransactionRepository productUnitTransactionRepository, 
+        EpcNrDocumentDetailRepository epcNrDocumentDetailRepository, AuditService auditService) {
         this.repository = repository;
         this.documentRepository = documentRepository;
         this.auditService = auditService;
+        this.productUnitRepository = productUnitRepository;
+        this.productUnitTransactionRepository = productUnitTransactionRepository;
+        this.epcNrDocumentDetailRepository = epcNrDocumentDetailRepository;
     }
 
     @Transactional
@@ -215,5 +231,44 @@ public class DocumentDetailService {
                 documentId,
                 "Document finished"
         );
+    }
+
+    @Transactional
+    public void registerRfidRead(Long documentDetailId, CreateRfidReadRequest request) {
+        DocumentDetail detail = repository.findById(documentDetailId).orElseThrow();
+        if (detail.getMoveTypeId() != 2) {
+            throw new RuntimeException("RFID can only be registered on clean details");
+        }
+
+        //int epcCount = request.getEpcs().size();
+        int epcCount = 0;
+        int epcOk = 0;
+        int epcNr = 0;
+        for (String epc : request.getEpcs()) {
+            epcCount++;
+            Optional<ProductUnit> productUnit = productUnitRepository.findByProductUnitEpc(epc);
+            if (productUnit.isPresent()) {
+                ProductUnitTransaction transaction = new ProductUnitTransaction();
+                transaction.setProductUnitId(productUnit.get().getProductUnitId());
+                transaction.setDocumentDetailId(documentDetailId);
+                transaction.setDeviceId(request.getDeviceId());
+                transaction.setProductUnitTransactionDatetime(LocalDateTime.now());
+                transaction.setProductUnitTransactionValid(true);
+                productUnitTransactionRepository.save(transaction);
+                epcOk++;
+
+            } else {
+                EpcNrDocumentDetail epcNrDetail = new EpcNrDocumentDetail();
+                epcNrDetail.setDocumentDetailId(documentDetailId);
+                epcNrDetail.setDeviceId(request.getDeviceId());
+                epcNrDetail.setEpcNr(epc);
+                epcNrDocumentDetailRepository.save(epcNrDetail);
+                epcNr++;
+            }
+        }
+        detail.setDocumentDetailEpcCount(epcCount);
+        detail.setDocumentDetailEpcOk(epcOk);
+        detail.setDocumentDetailEpcNr(epcNr);
+        repository.save(detail);
     }
 }

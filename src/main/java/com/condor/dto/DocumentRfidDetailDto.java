@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
-@Schema(description = "Document datails of RFIS or tags")
+@Schema(description = "Document datails of RFID or tags")
 public class DocumentRfidDetailDto {
     @Schema(
         description = "Unique identifier",
