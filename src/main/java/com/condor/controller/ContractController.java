@@ -1,6 +1,7 @@
 package com.condor.controller;
 
 import java.util.List;
+
 import com.condor.dto.ActiveContractByPlantDto;
 import com.condor.dto.ActiveContractsSummaryDto;
 import com.condor.dto.ActiveDocumentsByContractDto;
@@ -13,6 +14,9 @@ import com.condor.exception.ResourceNotFoundException;
 import com.condor.security.SecurityUtils;
 import com.condor.security.StationPrincipal;
 import com.condor.service.ContractService;
+import com.condor.dto.ContractDocumentsByStatusDto;
+import com.condor.dto.ContractDocumentsGroupDto;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,6 +72,34 @@ public class ContractController {
                 contractId,
                 station.getPlantId().longValue()
             )
+        );
+    }
+
+    @GetMapping("/documents-by-status")
+    public ResponseEntity<List<ContractDocumentsByStatusDto>> listDocumentsByStatus(
+            @RequestParam("statuses") List<Short> statuses
+    ) {
+        StationPrincipal station = SecurityUtils.getStation();
+        return ResponseEntity.ok(
+                contractService.listDocumentsByStatus(
+                        station.getPlantId().longValue(),
+                        statuses
+                )
+        );
+    }
+
+    @GetMapping("/documents-grouped-by-status")
+    public ResponseEntity<List<ContractDocumentsGroupDto>>
+    listGroupedDocumentsByStatus(
+            @RequestParam("statuses") List<Short> statuses
+    ) {
+        StationPrincipal station = SecurityUtils.getStation();
+
+        return ResponseEntity.ok(
+                contractService.listGroupedDocumentsByStatus(
+                        station.getPlantId(),
+                        statuses
+                )
         );
     }
 
