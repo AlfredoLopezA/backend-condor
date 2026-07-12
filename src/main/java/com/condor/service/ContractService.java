@@ -79,19 +79,21 @@ public class ContractService {
   public List<ContractDocumentsByStatusDto> listDocumentsByStatus(Long plantId, List<Short> statuses) {
       String statusList = statuses.stream().map(String::valueOf).collect(Collectors.joining(","));
       String sql = """
-          SELECT c.contract_id, c.contract_name, c.contract_type_id, d.document_id, d.document_number, d.document_status_id,
-              d.document_date_income, d.document_dirty_weight, d.document_cage_dirty
-          FROM contract_plants cp
-          INNER JOIN contracts c
-              ON c.contract_id = cp.contract_id
-          INNER JOIN documents d
-              ON d.contract_id = c.contract_id
-            AND d.plant_id = cp.plant_id
-          WHERE cp.plant_id = ?
-            AND c.contract_active = true AND d.document_status_id IN (%s) AND CURRENT_DATE >= cp.contract_plant_start AND 
-            (cp.contract_plant_end IS NULL OR CURRENT_DATE <= cp.contract_plant_end)
-          ORDER BY c.contract_name, d.document_number
-          """.formatted(statusList);
+        SELECT c.contract_id, c.contract_name, c.contract_type_id, ct.contract_type_description, d.document_id, d.document_number, d.document_status_id,
+            d.document_date_income, d.document_dirty_weight, d.document_cage_dirty
+        FROM contract_plants cp
+        INNER JOIN contracts c
+            ON c.contract_id = cp.contract_id
+        INNER JOIN documents d
+            ON d.contract_id = c.contract_id
+        AND d.plant_id = cp.plant_id
+        INNER JOIN contract_types ct
+        ON ct.contract_type_id = c.contract_type_id
+        WHERE cp.plant_id = ?
+        AND c.contract_active = true AND d.document_status_id IN (%s) AND CURRENT_DATE >= cp.contract_plant_start AND 
+        (cp.contract_plant_end IS NULL OR CURRENT_DATE <= cp.contract_plant_end)
+        ORDER BY c.contract_name, d.document_number
+        """.formatted(statusList);
       return jdbcTemplate.query(sql,
               new BeanPropertyRowMapper<>(ContractDocumentsByStatusDto.class),
               plantId
@@ -99,145 +101,156 @@ public class ContractService {
   }
 
   private static class ContractDocumentRow {
-      private Long contractId;
-      private String contractName;
-      private Short contractTypeId;
-      private Long documentId;
-      private String documentNumber;
-      private Long documentStatusId;
-      private java.time.LocalDateTime documentDateIncome;
-      private java.math.BigDecimal documentDirtyWeight;
-      private Short documentCageDirty;
+    private Long contractId;
+    private String contractName;
+    private Short contractTypeId;
+    private String contractTypeDescription;
+    private Long documentId;
+    private String documentNumber;
+    private Long documentStatusId;
+    private java.time.LocalDateTime documentDateIncome;
+    private java.math.BigDecimal documentDirtyWeight;
+    private Short documentCageDirty;
 
-      public Long getContractId() {
-          return contractId;
-      }
+    public Long getContractId() {
+        return contractId;
+    }
 
-      public void setContractId(Long contractId) {
-          this.contractId = contractId;
-      }
+    public void setContractId(Long contractId) {
+        this.contractId = contractId;
+    }
 
-      public String getContractName() {
-          return contractName;
-      }
+    public String getContractName() {
+        return contractName;
+    }
 
-      public void setContractName(String contractName) {
-          this.contractName = contractName;
-      }
+    public void setContractName(String contractName) {
+        this.contractName = contractName;
+    }
 
-      public Short getContractTypeId() {
-          return contractTypeId;
-      }
+    public Short getContractTypeId() {
+        return contractTypeId;
+    }
 
-      public void setContractTypeId(Short contractTypeId) {
-          this.contractTypeId = contractTypeId;
-      }
+    public void setContractTypeId(Short contractTypeId) {
+        this.contractTypeId = contractTypeId;
+    }
 
-      public Long getDocumentId() {
-          return documentId;
-      }
+    public String getContractTypeDescription() {
+        return contractTypeDescription;
+    }
 
-      public void setDocumentId(Long documentId) {
-          this.documentId = documentId;
-      }
+    public void setContractTypeDescription(String contractTypeDescription) {
+        this.contractTypeDescription = contractTypeDescription;
+    }
 
-      public String getDocumentNumber() {
-          return documentNumber;
-      }
+    public Long getDocumentId() {
+        return documentId;
+    }
 
-      public void setDocumentNumber(String documentNumber) {
-          this.documentNumber = documentNumber;
-      }
+    public void setDocumentId(Long documentId) {
+        this.documentId = documentId;
+    }
 
-      public Long getDocumentStatusId() {
-          return documentStatusId;
-      }
+    public String getDocumentNumber() {
+        return documentNumber;
+    }
 
-      public void setDocumentStatusId(Long documentStatusId) {
-          this.documentStatusId = documentStatusId;
-      }
+    public void setDocumentNumber(String documentNumber) {
+        this.documentNumber = documentNumber;
+    }
 
-      public java.time.LocalDateTime getDocumentDateIncome() {
-          return documentDateIncome;
-      }
+    public Long getDocumentStatusId() {
+        return documentStatusId;
+    }
 
-      public void setDocumentDateIncome(java.time.LocalDateTime documentDateIncome) {
-          this.documentDateIncome = documentDateIncome;
-      }
+    public void setDocumentStatusId(Long documentStatusId) {
+        this.documentStatusId = documentStatusId;
+    }
 
-      public java.math.BigDecimal getDocumentDirtyWeight() {
-          return documentDirtyWeight;
-      }
+    public java.time.LocalDateTime getDocumentDateIncome() {
+        return documentDateIncome;
+    }
 
-      public void setDocumentDirtyWeight(java.math.BigDecimal documentDirtyWeight) {
-          this.documentDirtyWeight = documentDirtyWeight;
-      }
+    public void setDocumentDateIncome(java.time.LocalDateTime documentDateIncome) {
+        this.documentDateIncome = documentDateIncome;
+    }
 
-      public Short getDocumentCageDirty() {
-          return documentCageDirty;
-      }
+    public java.math.BigDecimal getDocumentDirtyWeight() {
+        return documentDirtyWeight;
+    }
 
-      public void setDocumentCageDirty(Short documentCageDirty) {
-          this.documentCageDirty = documentCageDirty;
-      }
+    public void setDocumentDirtyWeight(java.math.BigDecimal documentDirtyWeight) {
+        this.documentDirtyWeight = documentDirtyWeight;
+    }
+
+    public Short getDocumentCageDirty() {
+        return documentCageDirty;
+    }
+
+    public void setDocumentCageDirty(Short documentCageDirty) {
+        this.documentCageDirty = documentCageDirty;
+    }
   }
 
   public List<ContractDocumentsGroupDto> listGroupedDocumentsByStatus(Short plantId, List<Short> statuses) {
-      if (statuses == null || statuses.isEmpty()) {
-          throw new IllegalArgumentException("At least one document status is required");
-      }
-      String placeholders = statuses.stream().map(status -> "?").collect(Collectors.joining(","));
-      String sql = """
-          SELECT c.contract_id, c.contract_name, c.contract_type_id, d.document_id, d.document_number, d.document_status_id,
-              d.document_date_income, d.document_dirty_weight, d.document_cage_dirty
-          FROM contract_plants cp
-          INNER JOIN contracts c
-              ON c.contract_id = cp.contract_id
-          INNER JOIN documents d
-              ON d.contract_id = c.contract_id
-          WHERE cp.plant_id = ?
-            AND d.plant_id = cp.plant_id AND c.contract_active = TRUE AND CURRENT_DATE >= cp.contract_plant_start AND
-            (cp.contract_plant_end IS NULL OR CURRENT_DATE <= cp.contract_plant_end)
-            AND d.document_status_id IN (%s)
-          ORDER BY c.contract_name, d.document_status_id DESC, d.document_number
-          """.formatted(placeholders);
-      List<Object> params = new ArrayList<>();
-      params.add(plantId);
-      params.addAll(statuses);
-      List<ContractDocumentRow> rows = jdbcTemplate.query(
-              sql,
-              new BeanPropertyRowMapper<>(ContractDocumentRow.class),
-              params.toArray()
-      );
-      Map<Long, ContractDocumentsGroupDto> grouped = new LinkedHashMap<>();
-      for (ContractDocumentRow row : rows) {
-          ContractDocumentsGroupDto contract = grouped.computeIfAbsent(
-                  row.getContractId(),
-                  contractId -> {
-                      ContractDocumentsGroupDto dto =
-                              new ContractDocumentsGroupDto();
-                      dto.setContractId(row.getContractId());
-                      dto.setContractName(row.getContractName());
-                      dto.setContractTypeId(row.getContractTypeId());
-                      dto.setActiveDocuments(0L);
-                      dto.setProcessingDocuments(0L);
-                      return dto;
-                  }
-          );
-          ContractDocumentStatusDto document = new ContractDocumentStatusDto();
-          document.setDocumentId(row.getDocumentId());
-          document.setDocumentNumber(row.getDocumentNumber());
-          document.setDocumentStatusId(row.getDocumentStatusId());
-          document.setDocumentDateIncome(row.getDocumentDateIncome());
-          document.setDocumentDirtyWeight(row.getDocumentDirtyWeight());
-          document.setDocumentCageDirty(row.getDocumentCageDirty());
-          contract.getDocuments().add(document);
-          contract.setActiveDocuments(contract.getActiveDocuments() + 1);
-          if (row.getDocumentStatusId() == 4L) {
-              contract.setProcessingDocuments(contract.getProcessingDocuments() + 1);
-          }
-      }
-      return new ArrayList<>(grouped.values());
+    if (statuses == null || statuses.isEmpty()) {
+        throw new IllegalArgumentException("At least one document status is required");
+    }
+    String placeholders = statuses.stream().map(status -> "?").collect(Collectors.joining(","));
+    String sql = """
+        SELECT c.contract_id, c.contract_name, c.contract_type_id, ct.contract_type_description AS contractTypeDescription, d.document_id, d.document_number, d.document_status_id,
+            d.document_date_income, d.document_dirty_weight, d.document_cage_dirty
+        FROM contract_plants cp
+        INNER JOIN contracts c
+            ON c.contract_id = cp.contract_id
+        INNER JOIN documents d
+            ON d.contract_id = c.contract_id
+        INNER JOIN contract_types ct
+        ON ct.contract_type_id = c.contract_type_id
+            WHERE cp.plant_id = ?
+        AND d.plant_id = cp.plant_id AND c.contract_active = TRUE AND CURRENT_DATE >= cp.contract_plant_start AND
+        (cp.contract_plant_end IS NULL OR CURRENT_DATE <= cp.contract_plant_end)
+        AND d.document_status_id IN (%s)
+        ORDER BY c.contract_name, d.document_status_id DESC, d.document_number
+    """.formatted(placeholders);
+    List<Object> params = new ArrayList<>();
+    params.add(plantId);
+    params.addAll(statuses);
+    List<ContractDocumentRow> rows = jdbcTemplate.query(
+            sql,
+            new BeanPropertyRowMapper<>(ContractDocumentRow.class),
+            params.toArray()
+    );
+    Map<Long, ContractDocumentsGroupDto> grouped = new LinkedHashMap<>();
+    for (ContractDocumentRow row : rows) {
+        ContractDocumentsGroupDto contract = grouped.computeIfAbsent(
+                row.getContractId(),
+                contractId -> {
+                    ContractDocumentsGroupDto dto = new ContractDocumentsGroupDto();
+                    dto.setContractId(row.getContractId());
+                    dto.setContractName(row.getContractName());
+                    dto.setContractTypeId(row.getContractTypeId());
+                    dto.setContractTypeDescription(row.getContractTypeDescription());
+                    dto.setActiveDocuments(0L);
+                    dto.setProcessingDocuments(0L);
+                    return dto;
+                }
+        );
+        ContractDocumentStatusDto document = new ContractDocumentStatusDto();
+        document.setDocumentId(row.getDocumentId());
+        document.setDocumentNumber(row.getDocumentNumber());
+        document.setDocumentStatusId(row.getDocumentStatusId());
+        document.setDocumentDateIncome(row.getDocumentDateIncome());
+        document.setDocumentDirtyWeight(row.getDocumentDirtyWeight());
+        document.setDocumentCageDirty(row.getDocumentCageDirty());
+        contract.getDocuments().add(document);
+        contract.setActiveDocuments(contract.getActiveDocuments() + 1);
+        if (row.getDocumentStatusId() == 4L) {
+            contract.setProcessingDocuments(contract.getProcessingDocuments() + 1);
+        }
+    }
+    return new ArrayList<>(grouped.values());
   }
 
 }

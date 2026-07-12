@@ -11,6 +11,7 @@ public class ContractDocumentsGroupDto {
     private Long contractId;
     private String contractName;
     private Short contractTypeId;
+    private String contractTypeDescription;
     private Long activeDocuments;
     private Long processingDocuments;
     private List<ContractDocumentStatusDto> documents = new ArrayList<>();
