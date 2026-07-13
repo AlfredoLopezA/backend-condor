@@ -15,6 +15,7 @@ import com.condor.repository.ProductUnitRepository;
 import com.condor.repository.ProductUnitTransactionRepository;
 import com.condor.constants.AuditEntities;
 import com.condor.constants.AuditEvents;
+import com.condor.dto.DocumentDetailProductSummaryDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DocumentDetailService {
@@ -96,9 +98,14 @@ public class DocumentDetailService {
         return dto;
     }
 
-    public List<DocumentDetailDto> findByDocumentId(Long documentId) {
-        return repository.findByDocumentId(documentId)
-            .stream()
+    public List<DocumentDetailDto> findByDocumentId(Long documentId, Short moveTypeId) {
+        List<DocumentDetail> details;
+        if (moveTypeId == null) {
+            details = repository.findByDocumentId(documentId);
+        } else {
+            details = repository.findByDocumentIdAndMoveTypeId(documentId, moveTypeId);
+        }
+        return details.stream()
             .map(detail -> {
                 DocumentDetailDto dto = new DocumentDetailDto();
                 dto.setDocumentDetailId(detail.getDocumentDetailId());
@@ -113,6 +120,31 @@ public class DocumentDetailService {
                 return dto;
             })
             .toList();
+    }
+
+    public List<DocumentDetailProductSummaryDto> findProductSummary(Long documentDetailId) {
+        if (!repository.existsById(documentDetailId)) {
+            throw new RuntimeException("Document detail not found");
+        }
+        List<DocumentDetailProductSummaryDto> result = productUnitTransactionRepository.findProductSummaryByDocumentDetailId(documentDetailId)
+            .stream().map(row -> { DocumentDetailProductSummaryDto dto = new DocumentDetailProductSummaryDto();
+                dto.setProductId(((Number) row[0]).longValue());
+                dto.setProductName((String) row[1]);
+                dto.setQuantity(((Number) row[2]).longValue());
+                dto.setUnregistered(false);
+                return dto;
+            })
+            .collect(Collectors.toList());
+        long unregisteredCount = epcNrDocumentDetailRepository.countByDocumentDetailId(documentDetailId);
+        if (unregisteredCount > 0) {
+            DocumentDetailProductSummaryDto dto = new DocumentDetailProductSummaryDto();
+            dto.setProductId(null);
+            dto.setProductName(null);
+            dto.setQuantity(unregisteredCount);
+            dto.setUnregistered(true);
+            result.add(dto);
+        }
+        return result;
     }
 
     @Transactional

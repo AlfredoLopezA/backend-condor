@@ -16,9 +16,11 @@ import com.condor.security.StationPrincipal;
 import com.condor.service.ContractService;
 import com.condor.dto.ContractDocumentsByStatusDto;
 import com.condor.dto.ContractDocumentsGroupDto;
+import com.condor.dto.ContractTareDto;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -153,5 +155,14 @@ public class ContractController {
         ApiResponse<List<DocumentRfidDetailDto>> response =
                 new ApiResponse<>( true, "DOCUMENT_RFID_DETAILS_RETRIEVED_SUCCESSFULLY", "DOCUMENT_RFID_DETAILS_RETRIEVED_SUCCESSFULLY", details );
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{contractId}/tares")
+    public ResponseEntity<List<ContractTareDto>> findTaresByContractId(
+            @PathVariable Long contractId
+    ) {
+        return ResponseEntity.ok(
+                contractService.findTaresByContractId(contractId)
+        );
     }
 }

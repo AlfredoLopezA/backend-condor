@@ -4,6 +4,7 @@ import com.condor.dto.CreateDocumentDetailRequest;
 import com.condor.dto.CreateRfidReadRequest;
 import com.condor.dto.DocumentDetailDto;
 import com.condor.service.DocumentDetailService;
+import com.condor.dto.DocumentDetailProductSummaryDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,10 +41,23 @@ public class DocumentDetailController {
 
     @GetMapping("/{documentId}/details")
     public ResponseEntity<List<DocumentDetailDto>> findByDocumentId(
-            @PathVariable Long documentId
+            @PathVariable Long documentId,
+            @RequestParam(required = false) Short moveTypeId
     ) {
         return ResponseEntity.ok(
-            service.findByDocumentId(documentId)
+                service.findByDocumentId(
+                        documentId,
+                        moveTypeId
+                )
+        );
+    }
+
+    @GetMapping("/details/{documentDetailId}/product-summary")
+    public ResponseEntity<List<DocumentDetailProductSummaryDto>> findProductSummary(
+            @PathVariable Long documentDetailId
+    ) {
+        return ResponseEntity.ok(
+                service.findProductSummary(documentDetailId)
         );
     }
 

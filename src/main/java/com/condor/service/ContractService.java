@@ -4,6 +4,7 @@ import com.condor.dto.ActiveContractByPlantDto;
 import com.condor.dto.ActiveContractsSummaryDto;
 import com.condor.dto.ActiveDocumentsByContractDto;
 import com.condor.dto.ContractDto;
+import com.condor.dto.ContractTareDto;
 import com.condor.dto.DocumentDetailDto;
 import com.condor.dto.DocumentHeaderDto;
 import com.condor.dto.DocumentRfidDetailDto;
@@ -223,34 +224,51 @@ public class ContractService {
             params.toArray()
     );
     Map<Long, ContractDocumentsGroupDto> grouped = new LinkedHashMap<>();
-    for (ContractDocumentRow row : rows) {
-        ContractDocumentsGroupDto contract = grouped.computeIfAbsent(
-                row.getContractId(),
-                contractId -> {
-                    ContractDocumentsGroupDto dto = new ContractDocumentsGroupDto();
-                    dto.setContractId(row.getContractId());
-                    dto.setContractName(row.getContractName());
-                    dto.setContractTypeId(row.getContractTypeId());
-                    dto.setContractTypeDescription(row.getContractTypeDescription());
-                    dto.setActiveDocuments(0L);
-                    dto.setProcessingDocuments(0L);
-                    return dto;
-                }
-        );
-        ContractDocumentStatusDto document = new ContractDocumentStatusDto();
-        document.setDocumentId(row.getDocumentId());
-        document.setDocumentNumber(row.getDocumentNumber());
-        document.setDocumentStatusId(row.getDocumentStatusId());
-        document.setDocumentDateIncome(row.getDocumentDateIncome());
-        document.setDocumentDirtyWeight(row.getDocumentDirtyWeight());
-        document.setDocumentCageDirty(row.getDocumentCageDirty());
-        contract.getDocuments().add(document);
-        contract.setActiveDocuments(contract.getActiveDocuments() + 1);
-        if (row.getDocumentStatusId() == 4L) {
-            contract.setProcessingDocuments(contract.getProcessingDocuments() + 1);
+        for (ContractDocumentRow row : rows) {
+            ContractDocumentsGroupDto contract = grouped.computeIfAbsent(
+                    row.getContractId(),
+                    contractId -> {
+                        ContractDocumentsGroupDto dto = new ContractDocumentsGroupDto();
+                        dto.setContractId(row.getContractId());
+                        dto.setContractName(row.getContractName());
+                        dto.setContractTypeId(row.getContractTypeId());
+                        dto.setContractTypeDescription(row.getContractTypeDescription());
+                        dto.setActiveDocuments(0L);
+                        dto.setProcessingDocuments(0L);
+                        return dto;
+                    }
+            );
+            ContractDocumentStatusDto document = new ContractDocumentStatusDto();
+            document.setDocumentId(row.getDocumentId());
+            document.setDocumentNumber(row.getDocumentNumber());
+            document.setDocumentStatusId(row.getDocumentStatusId());
+            document.setDocumentDateIncome(row.getDocumentDateIncome());
+            document.setDocumentDirtyWeight(row.getDocumentDirtyWeight());
+            document.setDocumentCageDirty(row.getDocumentCageDirty());
+            contract.getDocuments().add(document);
+            contract.setActiveDocuments(contract.getActiveDocuments() + 1);
+            if (row.getDocumentStatusId() == 4L) {
+                contract.setProcessingDocuments(contract.getProcessingDocuments() + 1);
+            }
         }
+        return new ArrayList<>(grouped.values());
     }
-    return new ArrayList<>(grouped.values());
-  }
 
+    public List<ContractTareDto> findTaresByContractId(Long contractId) {
+        String sql = """
+            SELECT t.tare_id, t.tare_weight FROM contract_tares ct INNER JOIN tares t ON t.tare_id = ct.tare_id
+            WHERE ct.contract_id = ?
+            ORDER BY t.tare_weight
+            """;
+        return jdbcTemplate.query(
+                sql,
+                (rs, rowNum) -> {
+                    ContractTareDto dto = new ContractTareDto();
+                    dto.setTareId(rs.getLong("tare_id"));
+                    dto.setTareWeight(rs.getBigDecimal("tare_weight"));
+                    return dto;
+                },
+                contractId
+        );
+    }
 }
